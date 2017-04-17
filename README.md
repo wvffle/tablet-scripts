@@ -1,4 +1,5 @@
 # tablet-scripts
+Set of scripts for my SM-T230 
 
 #### Shell scripts
  - [bat.sh](/bat.sh) &mdash; Display battery stauts

@@ -1,5 +1,6 @@
 from evdev import InputDevice
 import time
+import subprocess
 import os
 import thread
 
@@ -7,8 +8,7 @@ import thread
 def brightness():
     return open("/sys/class/backlight/panel/actual_brightness", "r").read()
 
-last_brightness = 255
-pwrswitch = int(int(brightness()) > 0)
+pwrswitch = 0
 
 def back_press():
     pass
@@ -22,35 +22,28 @@ def power_press():
     pass
 def power_release():
     global pwrswitch
-    global last_brightness
-    print(pwrswitch, last_brightness)
-
-    if pwrswitch == 1:
-        last_brightness = brightness()
-        with open("/sys/class/backlight/panel/brightness", "w") as f:
-            f.write('0')
-            f.close()
-    else:
-        with open("/sys/class/backlight/panel/brightness", "w") as f:
-            f.write(last_brightness)
-            f.close()
+    disen  = '--enable' if pwrswitch == 1 else '--disable'
+    resact = 'reset' if pwrswitch == 1 else 'activate'
+    subprocess.check_call(['xset', 's', resact])
+    subprocess.check_call(['xinput', disen, 'touchscreen'])
 
     pwrswitch = abs(pwrswitch - 1)
 
 def home_press():
     pass
 def home_release():
-    os.system('xdotool key ctrl+alt+d')
+    if pwrswitch == 0:
+        os.system('xdotool key ctrl+alt+d')
 
 def vol_up_press():
     pass
 def vol_up_release():
-    last_brightness = os.system('~/brightness.sh +')
+    last_brightness = os.system('~/tablet-scripts/brightness.sh +')
 
 def vol_down_press():
     pass
 def vol_down_release():
-    last_brightness = os.system('~/brightness.sh -')
+    last_brightness = os.system('~/tablet-scripts/brightness.sh -')
 
 touch = '/dev/input/event0'  
 power = '/dev/input/event1'  
@@ -60,7 +53,7 @@ def listen_gpio():
     device = InputDevice(gpio)
     print(device)
     for event in device.read_loop():
-        if event.type == 1:
+        if event.type == 1 and pwrswitch == 0:
             if event.code == 102: # home
                 if event.value == 1:
                     home_press()
@@ -92,7 +85,7 @@ def listen_touch():
     device = InputDevice(touch)
     print(device)
     for event in device.read_loop():
-        if event.type == 1:
+        if event.type == 1 and pwrsitch == 0:
             if event.code == 158: # back
                 if event.value == 1:
                     back_press()

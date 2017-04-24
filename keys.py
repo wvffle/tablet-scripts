@@ -22,8 +22,10 @@ def power_press():
     pass
 def power_release():
     global pwrswitch
+    onoff  = 'on' if pwrswitch == 1 else 'off'
     disen  = '--enable' if pwrswitch == 1 else '--disable'
     resact = 'reset' if pwrswitch == 1 else 'activate'
+    subprocess.check_call(['xset', 's', onoff])
     subprocess.check_call(['xset', 's', resact])
     subprocess.check_call(['xinput', disen, 'touchscreen'])
 
